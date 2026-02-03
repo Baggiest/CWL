@@ -10,8 +10,19 @@ lab/
 ├── smithers.py            # Assistant LLM with context management tools
 ├── context_manager.py     # CRUD operations for context windows
 ├── visualizer.py          # Conversation graph visualizer
-├── example_usage.py       # Usage examples
-├── demo_visualizer.py     # Visualization demo
+├── benchmarks/            # Long-context benchmarking suite
+│   ├── base_benchmark.py      # Base class for benchmarks
+│   ├── needle_in_haystack.py  # Needle in haystack benchmark
+│   ├── oolong.py              # OOLONG benchmark
+│   ├── oolong_pairs.py        # OOLONG PAIRS benchmark
+│   ├── codeqa.py              # CodeQA benchmark
+│   ├── browsecomp.py          # BrowseComp+ benchmark
+│   └── benchmark_runner.py    # Benchmark execution engine
+├── examples/              # Example scripts
+│   ├── example_usage.py
+│   └── demo_visualizer.py
+├── tests/                 # Test files
+│   └── test_all.py
 ├── requirements.txt       # Python dependencies
 ├── .env                   # API keys (create this file)
 └── README.md             # This file
@@ -157,10 +168,15 @@ python smithers.py
    > visualize conversation.png
    ```
 
-4. **See examples:**
+4. **Run benchmarks:**
    ```bash
-   python example_usage.py
-   python demo_visualizer.py
+   python benchmarks/benchmark_runner.py --benchmark needle_in_haystack --context-lengths 1000 5000
+   ```
+
+5. **See examples:**
+   ```bash
+   python examples/example_usage.py
+   python examples/demo_visualizer.py
    ```
 
 ## Workflow Example
@@ -201,20 +217,79 @@ python smithers.py
 
 **Note:** Visualization features are optional. The rest of the system works without `networkx` and `matplotlib` installed.
 
+### 5. Benchmarking Suite (`benchmarks/`)
+Comprehensive benchmarking system for evaluating long-context window performance.
+
+**Available Benchmarks:**
+- **Needle in Haystack**: Find specific information in very long contexts
+- **OOLONG**: Out-Of-LOng-context Needle - information at various positions
+- **OOLONG PAIRS**: Find and relate pairs of information across long contexts
+- **CodeQA**: Answer questions about code in long contexts
+- **BrowseComp+**: Browse and comprehend information across long documents
+
+**Usage:**
+```bash
+# Run all benchmarks
+python benchmarks/benchmark_runner.py --benchmark all --context-lengths 1000 5000 10000 20000
+
+# Run specific benchmark
+python benchmarks/benchmark_runner.py --benchmark needle_in_haystack --context-lengths 5000 10000 --runs 5
+
+# Save results
+python benchmarks/benchmark_runner.py --benchmark all --output results.json
+```
+
+**Programmatic Usage:**
+```python
+from benchmarks.benchmark_runner import BenchmarkRunner
+
+runner = BenchmarkRunner(model="gpt-4o")
+results = runner.run_benchmark(
+    "needle_in_haystack",
+    context_lengths=[1000, 5000, 10000],
+    num_runs=3
+)
+runner.save_results(results, "results.json")
+```
+
+**Individual Benchmark Usage:**
+```python
+from benchmarks.needle_in_haystack import NeedleInHaystackBenchmark
+
+benchmark = NeedleInHaystackBenchmark()
+test_case = benchmark.generate_test_case(context_length=5000, needle_position="middle")
+# Use test_case["context"] and test_case["question"]
+# Evaluate with: benchmark.evaluate(response, test_case["expected_answer"])
+```
+
 ## Notes
 
-- This is a **lab project** for experimentation
+- This is a **lab project** for experimentation with long-context windows
 - Context is stored in memory by default (use `save`/`load` for persistence)
 - All tools are designed to be simple and understandable
 - The visualizer requires networkx and matplotlib (install separately if needed)
+- Benchmarks are designed to test context window limits and retrieval capabilities
 
 ## File Descriptions
 
+### Core Components
 - **chatgpt_client.py**: Simple ChatGPT interface (the "boss")
 - **smithers.py**: Assistant with context management tools
 - **context_manager.py**: Core CRUD operations for context arrays
 - **visualizer.py**: Graph visualization of conversations
-- **example_usage.py**: Code examples for all features
-- **demo_visualizer.py**: Demo script for visualization
+
+### Benchmarks
+- **benchmarks/base_benchmark.py**: Base class for all benchmarks
+- **benchmarks/needle_in_haystack.py**: Needle in haystack benchmark
+- **benchmarks/oolong.py**: OOLONG benchmark
+- **benchmarks/oolong_pairs.py**: OOLONG PAIRS benchmark
+- **benchmarks/codeqa.py**: CodeQA benchmark
+- **benchmarks/browsecomp.py**: BrowseComp+ benchmark
+- **benchmarks/benchmark_runner.py**: Benchmark execution engine
+
+### Examples & Tests
+- **examples/example_usage.py**: Code examples for all features
+- **examples/demo_visualizer.py**: Demo script for visualization
+- **tests/test_all.py**: Comprehensive test suite
 
 
